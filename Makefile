@@ -22,26 +22,7 @@ endif
 
 DEFS+=-DKAMAILIO_MOD_INTERFACE
 
-SERLIBPATH=../../lib
-SER_LIBS+=$(SERLIBPATH)/kmi/kmi
-
 NAME=presence_dfks.so
 
 include ../../Makefile.modules
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

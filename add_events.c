@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libxml/parser.h>
-#include "../../parser/parse_content.h"
+#include "../../core/parser/parse_content.h"
 #include "../presence/event_list.h"
 #include "../pua/pua.h"
 #include "presence_dfks.h"

@@ -4,6 +4,10 @@
 *.obj
 *.elf
 
+# Build Cruft
+*.d
+*.lst
+
 # Libraries
 *.lib
 *.a

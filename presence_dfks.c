@@ -5,11 +5,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "../../sr_module.h"
-#include "../../dprint.h"
-#include "../../str.h"
-#include "../../parser/msg_parser.h"
-#include "../../mem/mem.h"
+#include "../../core/sr_module.h"
+#include "../../core/dprint.h"
+#include "../../core/str.h"
+#include "../../core/parser/msg_parser.h"
+#include "../../core/mem/mem.h"
 #include "../presence/bind_presence.h"
 #include "add_events.h"
 #include "presence_dfks.h"
@@ -39,11 +39,6 @@ static param_export_t params[]={
 	{"dnd_param",		STR_PARAM, &dnd_param},
 	{0,                          0,         0}
 };
-static mi_export_t mi_cmds[] = {
-//	{ "set_feature",	mi_set,		0,  0,  mi_child_init},
-	{ 0,			0,			0,  0,  0}
-};
-
 
 /* module exports */
 struct module_exports exports= {
@@ -52,7 +47,7 @@ struct module_exports exports= {
     0,			/* exported functions */
     params,		/* exported parameters */
     0,			/* exported statistics */
-    mi_cmds,			/* exported MI functions */
+    0,			/* exported MI functions */
     0,			/* exported pseudo-variables */
     0,			/* extra processes */
     mod_init,		/* module initialization function */
