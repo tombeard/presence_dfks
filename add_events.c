@@ -55,7 +55,7 @@ int dfks_publ_handler(struct sip_msg* msg) {
 	str body= {0, 0};
 	xmlDocPtr doc= NULL;
 
-	LM_ERR("dfks_publ_handl start\n");
+	LM_DBG("dfks_publ_handler start\n");
 	if ( get_content_length(msg) == 0 )
 		return 1;
 	
@@ -99,15 +99,12 @@ int dfks_subs_handler(struct sip_msg* msg) {
 	char id_buf[512];
 	int id_buf_len;
 
-
-
-
-	LM_ERR("dfks_subs_handl start\n");
+	LM_DBG("dfks_subs_handler start\n");
 	pres_uri.s = msg->first_line.u.request.uri.s;
 	pres_uri.len = msg->first_line.u.request.uri.len;
 
 	if ( get_content_length(msg) == 0 ){
-		LM_ERR("no body. (ok for initial)\n");
+		LM_DBG("no body. (ok for initial subscribe)\n");
 		return 1;
 	}
 	body.s=get_body(msg);
@@ -131,7 +128,7 @@ int dfks_subs_handler(struct sip_msg* msg) {
 	}
 	top_elem=libxml_api.xmlDocGetNodeByName(doc, "SetDoNotDisturb", NULL);
 	if(top_elem != NULL) {
-		LM_ERR(" got SetDoNotDisturb\n");
+		LM_INFO(" got SetDoNotDisturb\n");
 		param = libxml_api.xmlNodeGetNodeByName(top_elem, "doNotDisturbOn", NULL);
 		if(param!= NULL) {
 			dndact= (char*)xmlNodeGetContent(param);
@@ -139,7 +136,7 @@ int dfks_subs_handler(struct sip_msg* msg) {
 				LM_ERR("while extracting value from 'doNotDisturbOn' in 'SetDoNotDisturb'\n");
 				goto error;
 			}
-			LM_ERR("got 'doNotDisturbOn'=%s in 'SetDoNotDisturb'\n",dndact);
+			LM_INFO("got 'doNotDisturbOn'=%s in 'SetDoNotDisturb'\n",dndact);
 		}
 		param = libxml_api.xmlNodeGetNodeByName(top_elem, "device", NULL);
 		if(param!= NULL) {
@@ -150,7 +147,7 @@ int dfks_subs_handler(struct sip_msg* msg) {
 			}
 			if (strlen(device)==0)
 			    device=unk_dev.s;
-			LM_ERR("got 'device'=%s in 'SetDoNotDisturb'\n",device);
+			LM_INFO("got 'device'=%s in 'SetDoNotDisturb'\n",device);
 		}
 		body.len=dnd_xml.len -4 +strlen(dndact)+strlen(device);
 		body.s=pkg_malloc(body.len+1);
@@ -159,13 +156,13 @@ int dfks_subs_handler(struct sip_msg* msg) {
 			goto error;
 		}
 		sprintf(body.s,dnd_xml.s,device,dndact);
-		LM_ERR("body for dnd publish is %d, %s\n",body.len,body.s);
+		LM_DBG("body for dnd publish is %d, %s\n",body.len,body.s);
 		memset(&publ, 0, sizeof(publ_info_t));
 		publ.pres_uri = &pres_uri;
 		publ.body = &body;
 		id_buf_len = snprintf(id_buf, sizeof(id_buf), "dfks_PUBLISH.%.*s",
 			pres_uri.len, pres_uri.s);
-		LM_ERR("ID = %.*s\n",id_buf_len,id_buf);
+		LM_DBG("ID = %.*s\n",id_buf_len,id_buf);
 		publ.id.s = id_buf;
 		publ.id.len = id_buf_len;
 		publ.content_type = content_type;
@@ -187,7 +184,7 @@ int dfks_subs_handler(struct sip_msg* msg) {
 	}
 	top_elem=libxml_api.xmlDocGetNodeByName(doc, "SetForwarding", NULL);
 	if(top_elem != NULL) {
-		LM_ERR(" got SetForwarding\n");
+		LM_INFO(" got SetForwarding\n");
 		param = libxml_api.xmlNodeGetNodeByName(top_elem, "forwardDN", NULL);
 		if(param!= NULL) {
 			fwdDN= (char*)xmlNodeGetContent(param);
@@ -195,7 +192,7 @@ int dfks_subs_handler(struct sip_msg* msg) {
 				LM_ERR("while extracting value from 'forwardDN' in 'SetForwarding'\n");
 				goto error;
 			}
-			LM_ERR("got 'forwardDN'=%s in 'SetForwarding'\n",fwdDN);
+			LM_INFO("got 'forwardDN'=%s in 'SetForwarding'\n",fwdDN);
 		}
 		param = libxml_api.xmlNodeGetNodeByName(top_elem, "forwardingType", NULL);
 		if(param!= NULL) {
@@ -204,7 +201,7 @@ int dfks_subs_handler(struct sip_msg* msg) {
 				LM_ERR("while extracting value from 'forwardingType' in 'SetForwarding'\n");
 				goto error;
 			}
-			LM_ERR("got 'forwardingType'=%s in 'SetForwarding'\n",fwdtype);
+			LM_INFO("got 'forwardingType'=%s in 'SetForwarding'\n",fwdtype);
 		}
 		param = libxml_api.xmlNodeGetNodeByName(top_elem, "activateForward", NULL);
 		if(param!= NULL) {
@@ -213,7 +210,7 @@ int dfks_subs_handler(struct sip_msg* msg) {
 				LM_ERR("while extracting value from 'activateForward' in 'SetForwarding'\n");
 				goto error;
 			}
-			LM_ERR("got 'activateForward'=%s in 'SetForwarding'\n",fwdact);
+			LM_INFO("got 'activateForward'=%s in 'SetForwarding'\n",fwdact);
 		}
 		param = libxml_api.xmlNodeGetNodeByName(top_elem, "device", NULL);
 		if(param!= NULL) {
@@ -231,13 +228,13 @@ int dfks_subs_handler(struct sip_msg* msg) {
 			goto error;
 		}
 		sprintf(body.s,fwd_xml.s,device,fwdtype,fwdact,fwdDN);
-		LM_ERR("body for dnd publish is %d %s\n",body.len,body.s);
+		LM_DBG("body for dnd publish is %d %s\n",body.len,body.s);
 		memset(&publ, 0, sizeof(publ_info_t));
 		publ.pres_uri = &pres_uri;
 		publ.body = &body;
 		id_buf_len = snprintf(id_buf, sizeof(id_buf), "DFKS_PUBLISH.%.*s",
 			pres_uri.len, pres_uri.s);
-		LM_ERR("ID = %.*s\n",id_buf_len,id_buf);
+		LM_DBG("ID = %.*s\n",id_buf_len,id_buf);
 		publ.id.s = id_buf;
 		publ.id.len = id_buf_len;
 		publ.content_type = content_type;
