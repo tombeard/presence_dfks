@@ -7,7 +7,7 @@ index b802232..f712013 100644
  	}
  
 +	if(add_pua_event(DFKS_EVENT, "as-feature-event",
-+				"application/x-as-feature-event+xml", feature_process_body)< 0)
++				"application/x-as-feature-event+xml", dfks_process_body)< 0)
 +	{
 +		LM_ERR("while adding event as-feature-event\n");
 +		return -1;
