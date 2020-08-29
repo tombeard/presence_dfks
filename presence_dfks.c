@@ -27,8 +27,6 @@ struct tm_binds tmb;
 /** Presence API structure */
 presence_api_t pres;
 
-pua_api_t pua;
-
 libxml_api_t libxml_api;
 
 str outbound_proxy = {0, 0};
@@ -60,7 +58,6 @@ static int mod_init(void)
 {
 	bind_presence_t bind_presence;
 	load_tm_f  load_tm;
-	bind_pua_t bind_pua;
 	bind_libxml_t bind_libxml;
 
 	/* bind the SL API */
@@ -91,15 +88,6 @@ static int mod_init(void)
 
 	if (pres.add_event == NULL) {
 		LM_ERR("could not import add_event\n");
-		return -1;
-	}
-	bind_pua= (bind_pua_t)find_export("bind_pua", 1,0);
-	if (!bind_pua) {
-		LM_ERR("Can't bind pua\n");
-		return -1;
-	}
-	if (bind_pua(&pua) < 0) {
-		LM_ERR("mod_init Can't bind pua\n");
 		return -1;
 	}
 

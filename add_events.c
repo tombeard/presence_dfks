@@ -1,20 +1,14 @@
-#include <stdio.h>
+ <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <libxml/parser.h>
 #include "../../core/parser/parse_content.h"
 #include "../presence/event_list.h"
-#include "../pua/pua.h"
 #include "presence_dfks.h"
 #include "add_events.h"
 
 static str pu_415_rpl  = str_init("Unsupported media type");
 static str unk_dev = str_init("<notKnown/>");
-static str content_type =str_init("application/x-as-feature-event+xml");
-// -4
-static str dnd_xml = str_init("<?xml version='1.0' encoding='ISO-8859-1'?><DoNotDisturbEvent><device>%s</device><doNotDisturbOn>%s</doNotDisturbOn></DoNotDisturbEvent>");
-// -8
-static str fwd_xml = str_init("<?xml version='1.0' encoding='ISO-8859-1'?><ForwardingEvent><device>%s</device><forwardingType>%s</forwardingType><forwardStatus>%s</forwardStatus><forwardTo>%s</forwardTo></ForwardingEvent>");
 
 int dfks_add_events(void)
 {
@@ -94,10 +88,7 @@ int dfks_subs_handler(struct sip_msg* msg) {
 	xmlNodePtr top_elem= NULL;
 	xmlNodePtr param = NULL;
 	char *dndact=NULL,*fwdact=NULL,*fwdtype=NULL,*fwdDN=NULL,*device=NULL;
-	publ_info_t publ;
 	str pres_uri;
-	char id_buf[512];
-	int id_buf_len;
 
 	LM_DBG("dfks_subs_handler start\n");
 	pres_uri.s = msg->first_line.u.request.uri.s;
@@ -149,37 +140,6 @@ int dfks_subs_handler(struct sip_msg* msg) {
 			    device=unk_dev.s;
 			LM_INFO("got 'device'=%s in 'SetDoNotDisturb'\n",device);
 		}
-		body.len=dnd_xml.len -4 +strlen(dndact)+strlen(device);
-		body.s=pkg_malloc(body.len+1);
-		if(body.s== NULL)  {
-			LM_ERR("while extracting allocating body for publish in 'SetDoNotDisturb'\n");
-			goto error;
-		}
-		sprintf(body.s,dnd_xml.s,device,dndact);
-		LM_DBG("body for dnd publish is %d, %s\n",body.len,body.s);
-		memset(&publ, 0, sizeof(publ_info_t));
-		publ.pres_uri = &pres_uri;
-		publ.body = &body;
-		id_buf_len = snprintf(id_buf, sizeof(id_buf), "dfks_PUBLISH.%.*s",
-			pres_uri.len, pres_uri.s);
-		LM_DBG("ID = %.*s\n",id_buf_len,id_buf);
-		publ.id.s = id_buf;
-		publ.id.len = id_buf_len;
-		publ.content_type = content_type;
-		publ.expires = 3600;
-		
-		/* make UPDATE_TYPE, as if this "publish dialog" is not found.
-		   by pua it will fallback to INSERT_TYPE anyway */
-		publ.flag|= INSERT_TYPE;
-		publ.source_flag |= DFKS_PUBLISH;
-		publ.event |= DFKS_EVENT;
-		publ.extra_headers= NULL;
-
-		if(pua.send_publish(&publ) < 0) {
-			LM_ERR("error while sending publish\n");
-			pkg_free(body.s);
-			goto error;
-		}
 		pkg_free(body.s);
 	}
 	top_elem=libxml_api.xmlDocGetNodeByName(doc, "SetForwarding", NULL);
@@ -220,37 +180,6 @@ int dfks_subs_handler(struct sip_msg* msg) {
 				goto error;
 			}
 			LM_ERR("got 'device'=%s in 'SetDoNotDisturb'\n",device);
-		}
-		body.len=fwd_xml.len -8 + strlen(device) + strlen(device) +strlen(fwdtype) + strlen(fwdact) +strlen(fwdDN);
-		body.s=pkg_malloc(body.len+1);
-		if(body.s== NULL)  {
-			LM_ERR("while extracting allocating body for publish in 'SetForwarding'\n");
-			goto error;
-		}
-		sprintf(body.s,fwd_xml.s,device,fwdtype,fwdact,fwdDN);
-		LM_DBG("body for dnd publish is %d %s\n",body.len,body.s);
-		memset(&publ, 0, sizeof(publ_info_t));
-		publ.pres_uri = &pres_uri;
-		publ.body = &body;
-		id_buf_len = snprintf(id_buf, sizeof(id_buf), "DFKS_PUBLISH.%.*s",
-			pres_uri.len, pres_uri.s);
-		LM_DBG("ID = %.*s\n",id_buf_len,id_buf);
-		publ.id.s = id_buf;
-		publ.id.len = id_buf_len;
-		publ.content_type = content_type;
-		publ.expires = 3600;
-		
-		/* make UPDATE_TYPE, as if this "publish dialog" is not found.
-		   by pua it will fallback to INSERT_TYPE anyway */
-		publ.flag|= INSERT_TYPE;
-		publ.source_flag |= DFKS_PUBLISH;
-		publ.event |= DFKS_EVENT;
-		publ.extra_headers= NULL;
-
-		if(pua.send_publish(&publ) < 0) {
-			LM_ERR("error while sending publish\n");
-			pkg_free(body.s);
-			goto error;
 		}
 		pkg_free(body.s);
 	}
