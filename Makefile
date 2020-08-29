@@ -20,8 +20,6 @@ else
 	LIBS+=-L$(LOCALBASE)/lib -lxml2
 endif
 
-DEFS+=-DKAMAILIO_MOD_INTERFACE
-
 NAME=presence_dfks.so
 
 include ../../Makefile.modules
