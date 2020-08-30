@@ -3,5 +3,5 @@
 
 int dfks_add_events(void);
 int	dfks_publ_handler(struct sip_msg* msg);
-int	dfks_subs_handler(struct sip_msg* msg);
+int	dfks_subs_handler(struct sip_msg* msg, int *suppress_fast_notify);
 #endif

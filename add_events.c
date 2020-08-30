@@ -74,17 +74,14 @@ error:
 	return -1;
 }
 
-int dfks_subs_handler(struct sip_msg* msg) {
+int dfks_subs_handler(struct sip_msg* msg, int *suppress_fast_notify) {
 	str body= {0, 0};
 	xmlDocPtr doc= NULL;
 	xmlNodePtr top_elem= NULL;
 	xmlNodePtr param = NULL;
 	char *dndact=NULL,*fwdact=NULL,*fwdtype=NULL,*fwdDN=NULL,*device=NULL;
-	str pres_uri;
 
 	LM_DBG("dfks_subs_handler start\n");
-	pres_uri.s = msg->first_line.u.request.uri.s;
-	pres_uri.len = msg->first_line.u.request.uri.len;
 
 	if ( get_content_length(msg) == 0 ){
 		LM_DBG("no body. (ok for initial subscribe)\n");
@@ -96,8 +93,14 @@ int dfks_subs_handler(struct sip_msg* msg) {
 		LM_ERR("cannot extract body from msg\n");
 		goto error;
 	}
-	/* content-length (if present) must be already parsed */
 
+	/* suppress fast notify to avoid sending conflicting replies when
+	 	using an async method to process a change of state
+		- this should be moved to a callback */
+	LM_WARN("suppressing fast notify reply for subscribe with body\n");
+	*suppress_fast_notify = 1;
+
+	/* content-length (if present) must be already parsed */
 	body.len = get_content_length( msg );
 	doc=xmlParseMemory( body.s, body.len );
 	if(doc== NULL)

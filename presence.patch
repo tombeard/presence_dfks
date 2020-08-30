@@ -1,0 +1,76 @@
+diff --git a/src/modules/presence/event_list.h b/src/modules/presence/event_list.h
+index 3f30cb8265..5218deae05 100644
+--- a/src/modules/presence/event_list.h
++++ b/src/modules/presence/event_list.h
+@@ -44,7 +44,7 @@ typedef int(apply_auth_t)(str *, struct subscription *, str **);
+ 
+ typedef int(publ_handling_t)(struct sip_msg *);
+ 
+-typedef int(subs_handling_t)(struct sip_msg *);
++typedef int(subs_handling_t)(struct sip_msg *, int *suppress_fast_notify);
+ 
+ typedef str *(agg_nbody_t)(str *pres_user, str *pres_domain, str **body_array,
+ 		int n, int off_index);
+diff --git a/src/modules/presence/subscribe.c b/src/modules/presence/subscribe.c
+index 40421befb6..fdd5462e16 100644
+--- a/src/modules/presence/subscribe.c
++++ b/src/modules/presence/subscribe.c
+@@ -555,7 +555,7 @@ error:
+ }
+ 
+ int update_subscription(
+-		struct sip_msg *msg, subs_t *subs, int to_tag_gen, int *sent_reply)
++		struct sip_msg *msg, subs_t *subs, int to_tag_gen, int *sent_reply, int *suppress_fast_notify )
+ {
+ 	unsigned int hash_code;
+ 
+@@ -676,7 +676,7 @@ int update_subscription(
+ 				}
+ 			}
+ 		} else {
+-			if(pres_send_fast_notify && (notify(subs, NULL, NULL, 0, 0) < 0)) {
++			if(pres_send_fast_notify && !*suppress_fast_notify && (notify(subs, NULL, NULL, 0, 0) < 0)) {
+ 				LM_ERR("Could not send notify\n");
+ 				goto error;
+ 			}
+@@ -689,7 +689,7 @@ int update_subscription(
+ 		}
+ 		*sent_reply = 1;
+ 
+-		if(pres_send_fast_notify && (notify(subs, NULL, NULL, 0, 0) < 0)) {
++		if(pres_send_fast_notify && !*suppress_fast_notify && (notify(subs, NULL, NULL, 0, 0) < 0)) {
+ 			LM_ERR("sending notify request\n");
+ 			goto error;
+ 		}
+@@ -1040,6 +1040,7 @@ int handle_subscribe(struct sip_msg *msg, str watcher_user, str watcher_domain)
+ 	int reply_code;
+ 	str reply_str;
+ 	int sent_reply = 0;
++	int suppress_fast_notify = 0;
+ 
+ 	if(_pres_subs_mode==1) {
+ 		if(_pres_subs_last_sub) {
+@@ -1138,13 +1139,12 @@ int handle_subscribe(struct sip_msg *msg, str watcher_user, str watcher_domain)
+ 
+ 	/* call event specific subscription handling */
+ 	if(event->evs_subs_handl) {
+-		if(event->evs_subs_handl(msg) < 0) {
++		if(event->evs_subs_handl(msg, &suppress_fast_notify) < 0) {
+ 			LM_ERR("in event specific subscription handling\n");
+ 			goto error;
+ 		}
+ 	}
+ 
+-
+ 	/* if dialog initiation Subscribe - get subscription state */
+ 	if(to_tag_gen) {
+ 		subs.updated = NO_UPDATE_TYPE;
+@@ -1213,7 +1213,7 @@ int handle_subscribe(struct sip_msg *msg, str watcher_user, str watcher_domain)
+ 			LM_ERR("in update_subscription_notifier\n");
+ 			goto error;
+ 		}
+-	} else if(update_subscription(msg, &subs, to_tag_gen, &sent_reply) < 0) {
++	} else if(update_subscription(msg, &subs, to_tag_gen, &sent_reply, &suppress_fast_notify) < 0) {
+ 		LM_ERR("in update_subscription\n");
+ 		goto error;
+ 	}
