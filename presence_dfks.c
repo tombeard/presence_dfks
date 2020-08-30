@@ -29,11 +29,9 @@ presence_api_t pres;
 
 libxml_api_t libxml_api;
 
-str outbound_proxy = {0, 0};
 char* dnd_param = 0;
 
 static param_export_t params[]={
-	{"outbound_proxy",           STR_PARAM, &outbound_proxy.s},
 	{"dnd_param",		STR_PARAM, &dnd_param},
 	{0,                          0,         0}
 };
@@ -110,8 +108,6 @@ static int mod_init(void)
 		LM_ERR("failed to add as-feature-event events\n");
 		return -1;
 	}
-
-	outbound_proxy.len = outbound_proxy.s ? strlen(outbound_proxy.s) : 0;
 
 	return 0;
 }
