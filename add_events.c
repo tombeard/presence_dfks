@@ -13,8 +13,7 @@ static str unk_dev = str_init("<notKnown/>");
 int dfks_add_events(void)
 {
 	pres_ev_t event;
-	
-	/* constructing message-summary event */
+
 	memset(&event, 0, sizeof(pres_ev_t));
 	event.name.s = "as-feature-event";
 	event.name.len = 16;
@@ -24,24 +23,16 @@ int dfks_add_events(void)
 	event.default_expires= 3600;
 	event.type = PUBL_TYPE;
 	event.req_auth = 0;
+
+	/* register event handlers */
 	event.evs_publ_handl = dfks_publ_handler;
 	event.evs_subs_handl = dfks_subs_handler;
-//	event.etag_not_new;
-//	get_rules_doc_t* get_rules_doc;
-//	get_pidf_doc_t* get_pidf_doc;
-//	apply_auth_t*  apply_auth_nbody;
-//	is_allowed_t*  get_auth_status;
-//	agg_nbody_t* agg_nbody;
-//	free_body_t* free_body;
-//	aux_body_processing_t* aux_body_processing;
-//	free_body_t* aux_free_body;
-//	struct pres_ev* wipeer;
-//	struct pres_ev* next;
 
 	if (pres.add_event(&event) < 0) {
 		LM_ERR("failed to add event \"as-feature-event\"\n");
 		return -1;
-	}		
+	}
+
 	return 0;
 }
 
@@ -52,14 +43,14 @@ int dfks_publ_handler(struct sip_msg* msg) {
 	LM_DBG("dfks_publ_handler start\n");
 	if ( get_content_length(msg) == 0 )
 		return 1;
-	
+
 	body.s=get_body(msg);
 	if (body.s== NULL) {
 		LM_ERR("cannot extract body from msg\n");
 		goto error;
 	}
-	/* content-length (if present) must be already parsed */
 
+	/* content-length (if present) must be already parsed */
 	body.len = get_content_length( msg );
 	doc= xmlParseMemory( body.s, body.len );
 	if(doc== NULL)
@@ -82,6 +73,7 @@ error:
 	xmlMemoryDump();
 	return -1;
 }
+
 int dfks_subs_handler(struct sip_msg* msg) {
 	str body= {0, 0};
 	xmlDocPtr doc= NULL;
