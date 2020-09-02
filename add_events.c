@@ -135,7 +135,6 @@ int dfks_subs_handler(struct sip_msg* msg, int *suppress_fast_notify) {
 			    device=unk_dev.s;
 			LM_INFO("got 'device'=%s in 'SetDoNotDisturb'\n",device);
 		}
-		pkg_free(body.s);
 	}
 	top_elem=libxml_api.xmlDocGetNodeByName(doc, "SetForwarding", NULL);
 	if(top_elem != NULL) {
@@ -176,7 +175,6 @@ int dfks_subs_handler(struct sip_msg* msg, int *suppress_fast_notify) {
 			}
 			LM_ERR("got 'device'=%s in 'SetDoNotDisturb'\n",device);
 		}
-		pkg_free(body.s);
 	}
 
 	xmlFreeDoc(doc);
